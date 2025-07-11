@@ -15,18 +15,21 @@ class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
 private:
         void checkGetInstatnceMethod(CXXMethodDecl *method) 
         {   
+        
            std::vector<std::string> probablySingletonVars;
            probablySingletonVars.reserve(20);
 
            auto returnType = method->getReturnType()->getPointeeType();
-            
+
            for (Stmt* st : method->getBody()->children()) {
                 if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
                     for (Decl *decl : declStmt->decls()) {
                         if (auto *varDecl = dyn_cast<VarDecl>(decl)) {
                             if (varDecl->isStaticLocal()) {
-                                if (varDecl->getType()->getCanonicalTypeUnqualified() == returnType)
+                                if (varDecl->getType()->getCanonicalTypeUnqualified() == returnType) {
                                     probablySingletonVars.push_back(varDecl->getName().str());
+                                    llvm::outs() << "Found static local variable with class parent type. Singleton sign ||";
+                                }
                             }
                         }
                     }
@@ -35,10 +38,17 @@ private:
                     Expr* retExpr = retStmt->getRetValue();
                     if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
                         ValueDecl *valueDecl = declRef->getDecl();
-                        if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl))
+                        if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
                             if (std::find(probablySingletonVars.begin(), probablySingletonVars.end(), varDecl->getName().str())
                                     != probablySingletonVars.end())
-                                llvm::outs() << "this is singleton";
+                                llvm::outs() 
+                                    << "Found return statement with static local variable with parent type.Singleton sign ||  ";
+                            else if (varDecl->isStaticDataMember()
+                                    && (varDecl->getAccess() == AS_private)
+                                    && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType)) 
+                                    llvm::outs()
+                                 << "Found return statement with private static field of class with parent type.Singleton sign ||  ";
+                        }
                     }
                 }
             }
@@ -54,7 +64,7 @@ public:
 
         for (const auto* c : declaration->ctors())
             if (c->getAccess() == AS_private)
-                llvm::outs() << "\n!-! Private constructor\n";
+                llvm::outs() << "\n Found private constructor. Singleton sign ||\n";
 
         for (auto *method : declaration->methods()) {
             if (method->isStatic() && (method->getAccess() == AS_public))
@@ -62,6 +72,13 @@ public:
                     llvm::outs() << "\n!-! Probably getInstance() function \n";
                     checkGetInstatnceMethod(method);  
                 }
+                
+                if (CXXConstructorDecl* ctrDecl = dyn_cast<CXXConstructorDecl>(method))
+                    if (ctrDecl->isCopyConstructor() && ctrDecl->isDeleted())
+                        llvm::outs() << "\nCopy constructor deleted !\n";
+                
+                if (method->isCopyAssignmentOperator() && method->isDeleted())
+                    llvm::outs() << "\nCopy assigment operator  deleted !\n";
         }
 
         return true;

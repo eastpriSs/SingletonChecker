@@ -1,3 +1,3 @@
-clang++ -std=c++17 -fno-rtti -fPIC -I$(llvm-config --includedir) -shared Test.cpp -o libTest.so $(llvm-config --ldflags --libs --system-libs)
+clang++ -std=c++17 -fno-rtti -fPIC -I$(llvm-config --includedir) -shared SingltonCheckerMain.cpp -o SingltonCheckerMain.so $(llvm-config --ldflags --libs --system-libs)
 
-clang++ -fsyntax-only -Xclang -load -Xclang ./libTest.so -Xclang -plugin -Xclang class-visitor source.cpp
+clang++ -fsyntax-only -Xclang -load -Xclang ./SingltonCheckerMain.so -Xclang -plugin -Xclang class-visitor source.cpp

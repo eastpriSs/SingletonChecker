@@ -4,21 +4,57 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "llvm/Support/raw_ostream.h"
-#include <vector>
-#include <string>
 
 using namespace clang;
 
 namespace {
 
+
+
+class FunctionVisitor : public RecursiveASTVisitor<FunctionVisitor> {
+private:
+    ASTContext *Context;
+
+public:
+    explicit FunctionVisitor(ASTContext *Context) : Context(Context) {}
+
+    bool VisitFunctionDecl(FunctionDecl *func) {
+        if (isa<CXXMethodDecl>(func)) {
+            return true;
+        }
+        
+        auto returnType = func->getReturnType()->getPointeeType();
+        
+        for (Stmt* st : func->getBody()->children()){
+            if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
+                    for (Decl *decl : declStmt->decls()) {
+                        if (auto *varDecl = dyn_cast<VarDecl>(decl)) {
+                            if (varDecl->isStaticLocal() ) {
+ //                               llvm::outs() << "Found local variable ";
+                            }
+                        }
+                    }
+             }
+             if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
+                    Expr* retExpr = retStmt->getRetValue();
+                    if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
+                        ValueDecl *valueDecl = declRef->getDecl();
+                        if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
+                            if (varDecl->isStaticLocal() && varDecl->getType()->getCanonicalTypeUnqualified() == returnType)
+                                //llvm::outs() << "type.Singleton function sign ||  ";
+                        }
+                    }          
+              }
+        }
+        return true;
+    }
+};
+
+
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
 private:
         void checkGetInstatnceMethod(CXXMethodDecl *method) 
         {   
-        
-           std::vector<std::string> probablySingletonVars;
-           probablySingletonVars.reserve(20);
-
            auto returnType = method->getReturnType()->getPointeeType();
 
            for (Stmt* st : method->getBody()->children()) {
@@ -27,7 +63,6 @@ private:
                         if (auto *varDecl = dyn_cast<VarDecl>(decl)) {
                             if (varDecl->isStaticLocal()) {
                                 if (varDecl->getType()->getCanonicalTypeUnqualified() == returnType) {
-                                    probablySingletonVars.push_back(varDecl->getName().str());
                                     llvm::outs() << "Found static local variable with class parent type. Singleton sign ||";
                                 }
                             }
@@ -39,15 +74,15 @@ private:
                     if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
                         ValueDecl *valueDecl = declRef->getDecl();
                         if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
-                            if (std::find(probablySingletonVars.begin(), probablySingletonVars.end(), varDecl->getName().str())
-                                    != probablySingletonVars.end())
-                                llvm::outs() 
-                                    << "Found return statement with static local variable with parent type.Singleton sign ||  ";
-                            else if (varDecl->isStaticDataMember()
+                           if (varDecl->isStaticLocal() && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType))
+                              llvm::outs() 
+                              << "Found return statement with static local variable with parent type.Singleton sign ||  ";
+                           else if (varDecl->isStaticDataMember()
                                     && (varDecl->getAccess() == AS_private)
                                     && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType)) 
-                                    llvm::outs()
-                                 << "Found return statement with private static field of class with parent type.Singleton sign ||  ";
+                              llvm::outs()
+                              << "Found return statement with private static field of class with parent type.Singleton sign ||  ";
+                            
                         }
                     }
                 }
@@ -57,7 +92,7 @@ public:
     explicit ClassVisitor(ASTContext *Context) : Context(Context) {}
 
     bool VisitCXXRecordDecl(CXXRecordDecl *declaration) {
-        declaration->dumpColor();
+//        declaration->dumpColor();
         if (declaration->isEmbeddedInDeclarator() && !declaration->isFreeStanding()) {
             return true;
         }
@@ -68,7 +103,8 @@ public:
 
         for (auto *method : declaration->methods()) {
             if (method->isStatic() && (method->getAccess() == AS_public))
-                if (method->getReturnType()->getPointeeType() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified()){
+                if (method->getReturnType()->isPointerType() &&
+                   (method->getReturnType()->getPointeeType() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified())){
                     llvm::outs() << "\n!-! Probably getInstance() function \n";
                     checkGetInstatnceMethod(method);  
                 }
@@ -90,14 +126,16 @@ private:
 
 class ClassVisitorASTConsumer : public ASTConsumer {
 public:
-    explicit ClassVisitorASTConsumer(ASTContext *Context) : Visitor(Context) {}
+    explicit ClassVisitorASTConsumer(ASTContext *Context) : ClassVisitor(Context), FuncVisitor(Context) {}
 
     void HandleTranslationUnit(ASTContext &Context) override {
-        Visitor.TraverseDecl(Context.getTranslationUnitDecl());
+        ClassVisitor.TraverseDecl(Context.getTranslationUnitDecl());
+        FuncVisitor.TraverseDecl(Context.getTranslationUnitDecl());
     }
 
 private:
-    ClassVisitor Visitor;
+    ClassVisitor ClassVisitor;
+    FunctionVisitor FuncVisitor;
 };
 
 class ClassVisitorPlugin : public PluginASTAction {

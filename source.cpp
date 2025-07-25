@@ -4,15 +4,19 @@ private:
     static X singleton2;
     X() {}    
 public:
-    static X& getInstance2(){
-        return singleton2;
-    }
-    static X& getInstance1(){
-        static X singleton1;
-        return singleton1;
-    }
+    
     void y(){}
     void z(){}
+    static X& singletonxd(){
+        static X s;
+        static X s2;
+        return s;
+    }
+    static X& singleton(){
+        static X s;
+        static X s2;
+        return s;
+    }
 
     X(const X&) = delete;
     X& operator=(const X&) = delete;

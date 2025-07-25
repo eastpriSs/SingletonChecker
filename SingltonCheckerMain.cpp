@@ -41,7 +41,7 @@ public:
                         ValueDecl *valueDecl = declRef->getDecl();
                         if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
                             if (varDecl->isStaticLocal() && varDecl->getType()->getCanonicalTypeUnqualified() == returnType)
-                                //llvm::outs() << "type.Singleton function sign ||  ";
+                                llvm::outs() << "type.Singleton function sign ||  ";
                         }
                     }          
               }
@@ -53,75 +53,114 @@ public:
 
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
 private:
-        void checkGetInstatnceMethod(CXXMethodDecl *method) 
+
+        void checkForSingleObjectOfParentClass(CXXMethodDecl* method)
+        {
+            auto parentType = method->getParent()->getTypeForDecl()->getCanonicalTypeUnqualified();
+            for (Stmt* st : method->getBody()->children()){
+/*                if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
+                    for (Decl* dcl : declStmt->decls()) {
+                        if (VarDecl* varDecl = dyn_cast<VarDecl>(dcl)){
+                            if (!varDecl->getType()->isPointerType() 
+                            && varDecl->getType()->getCanonicalTypeUnqualified() == parentType) {
+                                if (++classStatistics.amountObjectsInMethods > 1) {
+                                    classStatistics.notSingleton = true;
+                                    return;
+                                }
+                            }
+                        }
+                     }
+                }
+*/            } 
+        }
+
+        bool isProbablyGetInstanceMethod(CXXMethodDecl *method) 
         {   
            auto returnType = method->getReturnType()->getPointeeType();
 
            for (Stmt* st : method->getBody()->children()) {
-                if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
-                    for (Decl *decl : declStmt->decls()) {
-                        if (auto *varDecl = dyn_cast<VarDecl>(decl)) {
-                            if (varDecl->isStaticLocal()) {
-                                if (varDecl->getType()->getCanonicalTypeUnqualified() == returnType) {
-                                    llvm::outs() << "Found static local variable with class parent type. Singleton sign ||";
-                                }
-                            }
-                        }
-                    }
-                }
                 if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
                     Expr* retExpr = retStmt->getRetValue();
                     if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
                         ValueDecl *valueDecl = declRef->getDecl();
                         if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
-                           if (varDecl->isStaticLocal() && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType))
-                              llvm::outs() 
-                              << "Found return statement with static local variable with parent type.Singleton sign ||  ";
-                           else if (varDecl->isStaticDataMember()
-                                    && (varDecl->getAccess() == AS_private)
+                            return (varDecl->isStaticLocal() 
                                     && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType)) 
-                              llvm::outs()
-                              << "Found return statement with private static field of class with parent type.Singleton sign ||  ";
-                            
+                            || (varDecl->isStaticDataMember()
+                               && (varDecl->getAccess() == AS_private)
+                               && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType));
                         }
                     }
                 }
-            }
+           }
+           return false;
         }
 public:
     explicit ClassVisitor(ASTContext *Context) : Context(Context) {}
 
     bool VisitCXXRecordDecl(CXXRecordDecl *declaration) {
-//        declaration->dumpColor();
         if (declaration->isEmbeddedInDeclarator() && !declaration->isFreeStanding()) {
             return true;
         }
+        
+        classStatistics.clear();
 
         for (const auto* c : declaration->ctors())
             if (c->getAccess() == AS_private)
-                llvm::outs() << "\n Found private constructor. Singleton sign ||\n";
+               classStatistics.hasPrivateConstructor = true; 
 
         for (auto *method : declaration->methods()) {
-            if (method->isStatic() && (method->getAccess() == AS_public))
-                if (method->getReturnType()->isPointerType() &&
-                   (method->getReturnType()->getPointeeType() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified())){
-                    llvm::outs() << "\n!-! Probably getInstance() function \n";
-                    checkGetInstatnceMethod(method);  
-                }
+            if (method->isStatic() 
+            && (method->getAccess() == AS_public)
+            && (method->getReturnType()->getPointeeType() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified())){
+                classStatistics.hasMethodLikelyInstance = isProbablyGetInstanceMethod(method); 
+            }
                 
-                if (CXXConstructorDecl* ctrDecl = dyn_cast<CXXConstructorDecl>(method))
-                    if (ctrDecl->isCopyConstructor() && ctrDecl->isDeleted())
-                        llvm::outs() << "\nCopy constructor deleted !\n";
-                
-                if (method->isCopyAssignmentOperator() && method->isDeleted())
-                    llvm::outs() << "\nCopy assigment operator  deleted !\n";
+            if (CXXConstructorDecl* ctrDecl = dyn_cast<CXXConstructorDecl>(method))
+                if (ctrDecl->isCopyConstructor() && ctrDecl->isDeleted())
+                    classStatistics.hasDeletedCopyConstuctor = true;
+                    
+            if (method->isCopyAssignmentOperator() && method->isDeleted())
+                classStatistics.hasDeletedAssigmentOperator = true;
+        
+            // second stage of analysis
+            checkForSingleObjectOfParentClass(method);
         }
 
+        classStatistics.dump();
         return true;
     }
 
 private:
     ASTContext *Context;
+
+    struct SingletonSigns {
+        bool hasPrivateConstructor          : 1; 
+        bool hasMethodLikelyInstance        : 1; 
+        bool hasDeletedCopyConstuctor       : 1; 
+        bool hasDeletedAssigmentOperator    : 1;
+        bool notSingleton                   : 1;
+        unsigned int amountObjectsInMethods : 4;
+        inline void  clear() noexcept
+        {
+            hasPrivateConstructor = false;
+            hasMethodLikelyInstance = false;
+            hasDeletedCopyConstuctor = false;
+            hasDeletedAssigmentOperator = false;
+            notSingleton = false;
+            amountObjectsInMethods = 0; 
+        }
+        inline void dump() const noexcept  
+        {
+            llvm::outs() << hasPrivateConstructor 
+                         << hasMethodLikelyInstance
+                         << hasDeletedCopyConstuctor
+                         << hasDeletedAssigmentOperator
+                         << notSingleton
+                         << amountObjectsInMethods;
+        }
+
+    } classStatistics;
 };
 
 class ClassVisitorASTConsumer : public ASTConsumer {

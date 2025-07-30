@@ -53,29 +53,41 @@ public:
 
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
 private:
-
+        void checkForSingleObjectOfParentClass(VarDecl* staticVarField)
+        {
+            // todo: isClassObject( VarDecl*, CXXRecordDecl* )
+            if (!staticVarField->getType()->isPointerType() 
+            && staticVarField->getType()->getCanonicalTypeUnqualified() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified()) {
+                llvm::outs() << "is object";
+                ++classStatistics.amountObjects;
+            }
+        }
+        
         void checkForSingleObjectOfParentClass(CXXMethodDecl* method)
         {
+            if (!method->hasBody()) return;
+           
             auto parentType = method->getParent()->getTypeForDecl()->getCanonicalTypeUnqualified();
             for (Stmt* st : method->getBody()->children()){
-/*                if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
+                if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
                     for (Decl* dcl : declStmt->decls()) {
                         if (VarDecl* varDecl = dyn_cast<VarDecl>(dcl)){
                             if (!varDecl->getType()->isPointerType() 
                             && varDecl->getType()->getCanonicalTypeUnqualified() == parentType) {
-                                if (++classStatistics.amountObjectsInMethods > 1) {
+                                if (++classStatistics.amountObjects > 1) {
                                     classStatistics.notSingleton = true;
                                     return;
                                 }
                             }
                         }
-                     }
-                }
-*/            } 
+                    }
+               }
+            } 
         }
 
         bool isProbablyGetInstanceMethod(CXXMethodDecl *method) 
-        {   
+        {  
+           if (!method->hasBody()) return false;
            auto returnType = method->getReturnType()->getPointeeType();
 
            for (Stmt* st : method->getBody()->children()) {
@@ -106,9 +118,9 @@ public:
         classStatistics.clear();
 
         for (const auto* c : declaration->ctors())
-            if (c->getAccess() == AS_private)
+            if (c->getAccess() == AS_private && !c->isDeleted())
                classStatistics.hasPrivateConstructor = true; 
-
+        
         for (auto *method : declaration->methods()) {
             if (method->isStatic() 
             && (method->getAccess() == AS_public)
@@ -127,6 +139,16 @@ public:
             checkForSingleObjectOfParentClass(method);
         }
 
+        // second stage of analysis  
+        for (auto* field : declaration->decls())
+        {
+            if (auto* var = dyn_cast<VarDecl>(field)) 
+                checkForSingleObjectOfParentClass(var);      
+        }
+
+        if (classStatistics.notSingleton)
+            llvm::outs() << "Not Singleton";
+
         classStatistics.dump();
         return true;
     }
@@ -140,7 +162,7 @@ private:
         bool hasDeletedCopyConstuctor       : 1; 
         bool hasDeletedAssigmentOperator    : 1;
         bool notSingleton                   : 1;
-        unsigned int amountObjectsInMethods : 4;
+        unsigned int amountObjects          : 4;
         inline void  clear() noexcept
         {
             hasPrivateConstructor = false;
@@ -148,7 +170,7 @@ private:
             hasDeletedCopyConstuctor = false;
             hasDeletedAssigmentOperator = false;
             notSingleton = false;
-            amountObjectsInMethods = 0; 
+            amountObjects = 0; 
         }
         inline void dump() const noexcept  
         {
@@ -157,7 +179,7 @@ private:
                          << hasDeletedCopyConstuctor
                          << hasDeletedAssigmentOperator
                          << notSingleton
-                         << amountObjectsInMethods;
+                         << amountObjects;
         }
 
     } classStatistics;

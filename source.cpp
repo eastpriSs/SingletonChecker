@@ -1,11 +1,13 @@
 class X
 {
 private:
+    int ok;
+    bool io;
     static X singleton2;
     X() {}    
 public:
     
-    void y(){}
+    void y(){ singleton2.z();  }
     void z(){}
     static X& singletonxd(){
         static X s;

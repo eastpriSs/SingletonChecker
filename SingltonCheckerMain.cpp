@@ -41,7 +41,7 @@ public:
                         ValueDecl *valueDecl = declRef->getDecl();
                         if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
                             if (varDecl->isStaticLocal() && varDecl->getType()->getCanonicalTypeUnqualified() == returnType)
-                                llvm::outs() << "type.Singleton function sign ||  ";
+                                llvm::outs() << "";
                         }
                     }          
               }
@@ -53,28 +53,27 @@ public:
 
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
 private:
-        void checkForSingleObjectOfParentClass(VarDecl* staticVarField)
+
+        bool isClassObject(VarDecl* varDecl, CXXRecordDecl* clssDecl)
         {
-            // todo: isClassObject( VarDecl*, CXXRecordDecl* )
-            if (!staticVarField->getType()->isPointerType() 
-            && staticVarField->getType()->getCanonicalTypeUnqualified() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified()) {
-                llvm::outs() << "is object";
-                ++classStatistics.amountObjects;
-            }
+            if (!(varDecl && clssDecl)) return false;
+            return !varDecl->getType()->isPointerType()
+                && (varDecl->getType()->getCanonicalTypeUnqualified() == clssDecl->getTypeForDecl()->getCanonicalTypeUnqualified());
         }
-        
+       
         void checkForSingleObjectOfParentClass(CXXMethodDecl* method)
         {
             if (!method->hasBody()) return;
            
-            auto parentType = method->getParent()->getTypeForDecl()->getCanonicalTypeUnqualified();
             for (Stmt* st : method->getBody()->children()){
                 if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
                     for (Decl* dcl : declStmt->decls()) {
                         if (VarDecl* varDecl = dyn_cast<VarDecl>(dcl)){
-                            if (!varDecl->getType()->isPointerType() 
-                            && varDecl->getType()->getCanonicalTypeUnqualified() == parentType) {
-                                if (++classStatistics.amountObjects > 1) {
+                            if (isClassObject(varDecl, method->getParent())) {
+                                //
+                                //                                         | if found temporary object
+                                //                                         V 
+                                if (++classStatistics.amountObjects > 1 || !varDecl->isStaticLocal()) {
                                     classStatistics.notSingleton = true;
                                     return;
                                 }
@@ -116,10 +115,11 @@ public:
         }
         
         classStatistics.clear();
-
+        
+        // first stage of analysis
         for (const auto* c : declaration->ctors())
-            if (c->getAccess() == AS_private && !c->isDeleted())
-               classStatistics.hasPrivateConstructor = true; 
+            if (c->getAccess() == AS_public && !c->isDeleted())
+               classStatistics.ctorsPrivate = false; 
         
         for (auto *method : declaration->methods()) {
             if (method->isStatic() 
@@ -140,14 +140,16 @@ public:
         }
 
         // second stage of analysis  
-        for (auto* field : declaration->decls())
-        {
-            if (auto* var = dyn_cast<VarDecl>(field)) 
-                checkForSingleObjectOfParentClass(var);      
+        if (!classStatistics.notSingleton) {
+            for (auto* field : declaration->decls()) {
+                if (isClassObject(dyn_cast<VarDecl>(field), declaration)) { 
+                    if (++classStatistics.amountObjects > 1) {
+                        classStatistics.notSingleton = true;
+                    }
+                }
+                if (classStatistics.notSingleton) break;
+            }
         }
-
-        if (classStatistics.notSingleton)
-            llvm::outs() << "Not Singleton";
 
         classStatistics.dump();
         return true;
@@ -156,8 +158,8 @@ public:
 private:
     ASTContext *Context;
 
-    struct SingletonSigns {
-        bool hasPrivateConstructor          : 1; 
+    struct SingletonSigns { // TODO rename
+        bool ctorsPrivate                   : 1; 
         bool hasMethodLikelyInstance        : 1; 
         bool hasDeletedCopyConstuctor       : 1; 
         bool hasDeletedAssigmentOperator    : 1;
@@ -165,7 +167,7 @@ private:
         unsigned int amountObjects          : 4;
         inline void  clear() noexcept
         {
-            hasPrivateConstructor = false;
+            ctorsPrivate = true;
             hasMethodLikelyInstance = false;
             hasDeletedCopyConstuctor = false;
             hasDeletedAssigmentOperator = false;
@@ -174,7 +176,7 @@ private:
         }
         inline void dump() const noexcept  
         {
-            llvm::outs() << hasPrivateConstructor 
+            llvm::outs() << ctorsPrivate 
                          << hasMethodLikelyInstance
                          << hasDeletedCopyConstuctor
                          << hasDeletedAssigmentOperator

@@ -4,11 +4,14 @@ private:
     int ok;
     bool io;
     static X singleton2;
+    static X singleton3;
+    static X singleton4;
     X() {}    
 public:
     
     void y(){ singleton2.z();  }
-    void z(){}
+    void z(){ X s;  }
+
     static X& singletonxd(){
         static X s;
         static X s2;

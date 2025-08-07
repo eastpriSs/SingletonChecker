@@ -9,6 +9,11 @@ public:
     void y(){  }
     void z(){  }
 
+    static X* instance(){
+        static X x;
+        return &x;
+    }
+
 
     X(const X&) = delete;
     X& operator=(const X&) = delete;

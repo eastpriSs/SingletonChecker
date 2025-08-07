@@ -131,20 +131,23 @@ private:
         bool isProbablyGetInstanceMethod(CXXMethodDecl *method) 
         {  
            if (method && !method->hasBody()) return false;
-           auto returnType = method->getReturnType()->getPointeeType();
-
+           
+           if (!(method->getReturnType()->isPointerType() ||  method->getReturnType()->isReferenceType()))
+               return false;
+           
+           method->dump();
            for (Stmt* st : method->getBody()->children()) {
                 if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
                     Expr* retExpr = retStmt->getRetValue();
                     if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
                         ValueDecl *valueDecl = declRef->getDecl();
                         if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
-                            return (varDecl->isStaticLocal() 
-                                    && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType)) 
-                            || (varDecl->isStaticDataMember()
-                               && (varDecl->getAccess() == AS_private)
-                               && (varDecl->getType()->getCanonicalTypeUnqualified() == returnType));
+                            return varDecl->isStaticLocal() 
+                            || (varDecl->isStaticDataMember() && (varDecl->getAccess() == AS_private));
                         }
+                    }
+                    else if (auto *unop = dyn_cast<UnaryOperator>(retExpr)){
+                        llvm::outs() << "TEST";
                     }
                 }
            }

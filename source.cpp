@@ -3,35 +3,32 @@ class X
 private:
     int ok;
     bool io;
-    static X singleton2;
-    static X singleton3;
-    static X singleton4;
     X() {}    
 public:
     
-    void y(){ singleton2.z();  }
-    void z(){ X s;  }
+    void y(){  }
+    void z(){  }
 
-    static X& singletonxd(){
-        static X s;
-        static X s2;
-        return s;
-    }
-    static X& singleton(){
-        static X s;
-        static X s2;
-        return s;
-    }
 
     X(const X&) = delete;
     X& operator=(const X&) = delete;
 
+    friend void intrestingFriend();
+    friend class Y;
+};
+
+class Y {
+    static X s;
+    X x;
 };
 
 template <typename T>
 T& single(){
     static T singleton;
     return singleton;
+}
+
+void intrestingFriend(){
 }
 
 int main(){

@@ -54,39 +54,83 @@ public:
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
 private:
 
-        bool isClassObject(VarDecl* varDecl, CXXRecordDecl* clssDecl)
+        template<typename T>
+        bool isClassObject(T* varDecl, CXXRecordDecl* clssDecl)
         {
             if (!(varDecl && clssDecl)) return false;
             return !varDecl->getType()->isPointerType()
                 && (varDecl->getType()->getCanonicalTypeUnqualified() == clssDecl->getTypeForDecl()->getCanonicalTypeUnqualified());
         }
-       
-        void checkForSingleObjectOfParentClass(CXXMethodDecl* method)
+
+        int countClassStaticObject(CXXRecordDecl* clssDecl, FunctionDecl* funcDecl)
         {
-            if (!method->hasBody()) return;
-           
-            for (Stmt* st : method->getBody()->children()){
+            if (!funcDecl->hasBody() || !(clssDecl && funcDecl)) return 0;
+            
+            int count = 0;
+            for (Stmt* st : funcDecl->getBody()->children()) {
                 if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
                     for (Decl* dcl : declStmt->decls()) {
                         if (VarDecl* varDecl = dyn_cast<VarDecl>(dcl)){
-                            if (isClassObject(varDecl, method->getParent())) {
-                                //
-                                //                                         | if found temporary object
-                                //                                         V 
-                                if (++classStatistics.amountObjects > 1 || !varDecl->isStaticLocal()) {
-                                    classStatistics.notSingleton = true;
-                                    return;
-                                }
+                            if (isClassObject(varDecl, clssDecl) && varDecl->isStaticLocal()) {
+                                ++count;
                             }
                         }
                     }
-               }
-            } 
+                }
+            }
+            return count;
         }
+
+        int countClassStaticObject(CXXRecordDecl* clssDecl, CXXRecordDecl* targetClssDecl)
+        {
+            if (!(clssDecl && targetClssDecl)) return 0;
+            
+            int count = 0;
+            for (auto* field : targetClssDecl->decls()) 
+                if (isClassObject(dyn_cast<VarDecl>(field), clssDecl))
+                   ++count;
+            
+            for (auto* method : targetClssDecl->methods())
+                count += countClassStaticObject(clssDecl, method);
+
+            return count; 
+        }
+
+        bool findClassLocalObject(CXXRecordDecl* clssDecl, CXXRecordDecl* targetClssDecl)
+        {
+            if (!(clssDecl && targetClssDecl)) return 0;
+           
+            for (auto* field : targetClssDecl->fields()) {
+                if (field->getType()->isPointerType() || field->getType()->isReferenceType())
+                   continue;
+                else if (isClassObject(field, clssDecl))
+                    return true;
+            }
+            return false;
+        }
+
+        bool findClassLocalObject(CXXRecordDecl* clssDecl, FunctionDecl* funcDecl)
+        {
+            if (!funcDecl->hasBody() || !(clssDecl && funcDecl)) return false;
+            
+            for (Stmt* st : funcDecl->getBody()->children()) {
+                if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
+                    for (Decl* dcl : declStmt->decls()) {
+                        if (VarDecl* varDecl = dyn_cast<VarDecl>(dcl)){
+                            if (isClassObject(varDecl, clssDecl) && !varDecl->isStaticLocal()) {
+                               return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
 
         bool isProbablyGetInstanceMethod(CXXMethodDecl *method) 
         {  
-           if (!method->hasBody()) return false;
+           if (method && !method->hasBody()) return false;
            auto returnType = method->getReturnType()->getPointeeType();
 
            for (Stmt* st : method->getBody()->children()) {
@@ -136,7 +180,9 @@ public:
                 classStatistics.hasDeletedAssigmentOperator = true;
         
             // second stage of analysis
-            checkForSingleObjectOfParentClass(method);
+            classStatistics.amountObjects += countClassStaticObject(declaration, method);
+            if (classStatistics.amountObjects > 1 || findClassLocalObject(declaration, method))
+                classStatistics.notSingleton = true;
         }
 
         // second stage of analysis  
@@ -145,11 +191,43 @@ public:
                 if (isClassObject(dyn_cast<VarDecl>(field), declaration)) { 
                     if (++classStatistics.amountObjects > 1) {
                         classStatistics.notSingleton = true;
+                        break;
                     }
                 }
-                if (classStatistics.notSingleton) break;
             }
         }
+
+        // third stage of analysis
+        if (!classStatistics.notSingleton) {
+            for (auto it = declaration->friend_begin(); it != declaration->friend_end(); ++it) {
+                if (FriendDecl* friendDecl = *it) {
+                    if (NamedDecl* nd = friendDecl->getFriendDecl()) {
+                        if (FunctionDecl* funcFriend = dyn_cast<FunctionDecl>(nd)) {
+                           classStatistics.amountObjects += countClassStaticObject(declaration, funcFriend);
+                           if (classStatistics.amountObjects > 1 || findClassLocalObject(declaration, funcFriend)) {
+                                classStatistics.notSingleton = true;
+                                break;
+                           }
+                        }
+                        
+                    }
+                    else if (TypeSourceInfo* tsi = friendDecl->getFriendType()) {
+                        QualType qt = tsi->getType();
+                        if (const RecordType* rt = qt->getAs<RecordType>()) {
+                            if (CXXRecordDecl* friendClss = dyn_cast<CXXRecordDecl>(rt->getDecl())) {
+                                classStatistics.amountObjects += countClassStaticObject(declaration, friendClss);
+                                if (classStatistics.amountObjects > 1 || findClassLocalObject(declaration, friendClss)){
+                                    classStatistics.notSingleton = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }    
+            }
+        }
+
+        //declaration->dump();
 
         classStatistics.dump();
         return true;
@@ -164,7 +242,7 @@ private:
         bool hasDeletedCopyConstuctor       : 1; 
         bool hasDeletedAssigmentOperator    : 1;
         bool notSingleton                   : 1;
-        unsigned int amountObjects          : 4;
+        unsigned int amountObjects          : 28;
         inline void  clear() noexcept
         {
             ctorsPrivate = true;

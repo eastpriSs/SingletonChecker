@@ -1,0 +1,349 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" version="28.1.2">
+  <diagram name="Страница — 1" id="4gzEwH-x4celyBJpQ0oq">
+    <mxGraphModel dx="1826" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="fUvLrTciA-M0m8CRBqld-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="fUvLrTciA-M0m8CRBqld-1" target="fUvLrTciA-M0m8CRBqld-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-1" value="Исходный AST" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="70" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="fUvLrTciA-M0m8CRBqld-2" target="fUvLrTciA-M0m8CRBqld-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-2" value="1 этап анализа" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="fUvLrTciA-M0m8CRBqld-3" target="fUvLrTciA-M0m8CRBqld-4" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-3" value="&lt;div&gt;2 этап анализа&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="fUvLrTciA-M0m8CRBqld-4" target="fUvLrTciA-M0m8CRBqld-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-4" value="&lt;div&gt;3 этап анализа&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="530" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="fUvLrTciA-M0m8CRBqld-5" target="fUvLrTciA-M0m8CRBqld-20" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-5" value="4 этап анализа" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="680" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-10" value="Список признаков синглтона" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
+          <mxGeometry x="400" y="310" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="fUvLrTciA-M0m8CRBqld-2" target="fUvLrTciA-M0m8CRBqld-10" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="300" y="330" as="sourcePoint" />
+            <mxPoint x="350" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-12" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="fUvLrTciA-M0m8CRBqld-3" target="fUvLrTciA-M0m8CRBqld-10" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="520" y="290" as="sourcePoint" />
+            <mxPoint x="570" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=100;entryDy=0;entryPerimeter=0;" parent="1" source="fUvLrTciA-M0m8CRBqld-4" target="fUvLrTciA-M0m8CRBqld-10" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="310" as="sourcePoint" />
+            <mxPoint x="610" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-14" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=120;exitDy=20;exitPerimeter=0;" parent="1" source="fUvLrTciA-M0m8CRBqld-10" target="fUvLrTciA-M0m8CRBqld-5" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="600" y="360" as="sourcePoint" />
+            <mxPoint x="650" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-15" value="Составления лога" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="10" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-16" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0;entryDx=20;entryDy=80;entryPerimeter=0;" parent="1" target="fUvLrTciA-M0m8CRBqld-15" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="300" y="160" as="sourcePoint" />
+            <mxPoint x="350" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-17" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0;entryDx=70;entryDy=80;entryPerimeter=0;" parent="1" target="fUvLrTciA-M0m8CRBqld-15" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="430" y="160" as="sourcePoint" />
+            <mxPoint x="530" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-18" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="fUvLrTciA-M0m8CRBqld-15" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="580" y="160" as="sourcePoint" />
+            <mxPoint x="600" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-19" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0;entryDx=120;entryDy=50;entryPerimeter=0;" parent="1" target="fUvLrTciA-M0m8CRBqld-15" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="740" y="160" as="sourcePoint" />
+            <mxPoint x="760" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="fUvLrTciA-M0m8CRBqld-20" target="SbZpYfy8iU4GfchqcEHP-35" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-20" value="5 этап анализа" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="827" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-22" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0;entryDx=120;entryDy=20;entryPerimeter=0;" parent="1" target="fUvLrTciA-M0m8CRBqld-15" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="880" y="160" as="sourcePoint" />
+            <mxPoint x="930" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-23" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="fUvLrTciA-M0m8CRBqld-10" target="fUvLrTciA-M0m8CRBqld-20" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="630" y="380" as="sourcePoint" />
+            <mxPoint x="680" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-26" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;1 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Смотрим общие черты класса: конструкторы, операторы присваивания. &lt;br&gt;&lt;/div&gt;&lt;div&gt;Дополнительная цель:&lt;/div&gt;&lt;div&gt;Ищем методы похожие на getInstance&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="-80" y="585" width="180" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-27" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="680" as="sourcePoint" />
+            <mxPoint x="240" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-28" value="AST класса" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="170" y="650" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-29" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="-20" y="411" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-30" value="Все конструкторы приватны или защищены и не удалены?" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="240" y="650" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-31" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-20" y="381" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-32" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-20" y="511" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-37" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="360" y="630" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-38" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="600" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-39" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="730" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-40" value="&lt;div&gt;В таком случае точно определить является ли класс Синглтоном сложно, либо это не Синглтон&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="410" y="710" width="120" height="89" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-42" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="630" as="sourcePoint" />
+            <mxPoint x="490" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-43" value="AST методов класса" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="430" y="590" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-44" value="Сигнатура, приватность, статичность схожи с getInstance" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="490" y="590" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-45" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="610" y="565" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-46" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="610" y="535" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fUvLrTciA-M0m8CRBqld-47" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="610" y="665" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="SbZpYfy8iU4GfchqcEHP-1" target="SbZpYfy8iU4GfchqcEHP-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-1" value="Проверяем признаки getInstance" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="660" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="SbZpYfy8iU4GfchqcEHP-9" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="965" y="608" as="sourcePoint" />
+            <mxPoint x="1005" y="608" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="990" y="608" />
+              <mxPoint x="990" y="603" />
+              <mxPoint x="1005" y="603" />
+              <mxPoint x="1005" y="605" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-2" value="Проверяем копирующий конструктор" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="850" y="575" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-3" value="Добавляем признак" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
+          <mxGeometry x="660" y="458" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-6" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="fUvLrTciA-M0m8CRBqld-47" target="SbZpYfy8iU4GfchqcEHP-2" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="660" y="665" as="sourcePoint" />
+            <mxPoint x="730.7106781186548" y="615" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-7" value="&lt;div&gt;Добавляем признак:&lt;/div&gt;&lt;div&gt;удален/нет&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
+          <mxGeometry x="860" y="495" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-9" value="Проверяем копирующий оператор" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1010" y="575" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-10" value="&lt;div&gt;Добавляем признак:&lt;/div&gt;&lt;div&gt;удален/нет&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="495" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-13" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;2 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Проверяем поля и методы на предмет создание объекта класса.&lt;/div&gt;&lt;div&gt;Дополнительная цель: Проверить методы схожие с getInstance&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="-85" y="930" width="180" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-14" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="1000" as="sourcePoint" />
+            <mxPoint x="240" y="1000" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-15" value="AST метода" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="170" y="960" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-16" value="Статический объектов класса больше, чем 1?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="240" y="970" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-17" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="360" y="950" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-18" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="920" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-19" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="1050" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-20" value="Это не Синглтон" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="410" y="910" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-21" value="Есть ли локальные объекты класса?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="410" y="1020" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-22" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="530" y="1000" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-23" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="970" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-24" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="1100" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-25" value="Это не Синглтон, либо сложно сказать." style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="580" y="970" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-26" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="580" y="1100" as="sourcePoint" />
+            <mxPoint x="660" y="1100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-27" value="AST статичных полей" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="580" y="1066" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-28" value="Статический объектов класса больше, чем 1?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="660" y="1070" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-29" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="780" y="1050" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-30" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="780" y="1020" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-31" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="780" y="1150" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-33" value="Это не Синглтон" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="830" y="1020" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-34" value="Проверяем методы схожие с getInstance" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="830" y="1120" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-35" value="Анализ завершел, отчет составлен." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;strokeWidth=3;" parent="1" vertex="1">
+          <mxGeometry x="970" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-37" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;3 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Проверить друзей на наличие объекта класса.&lt;/div&gt;&lt;div&gt;Дополнительная цель: найти схожую функцию с getInstance&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="-80" y="1380" width="180" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-38" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="1480" as="sourcePoint" />
+            <mxPoint x="240" y="1480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-39" value="AST объявления друга" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="170" y="1440" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-40" value="Провреряем функции на статические и локальные объекты класса. Количество объектов больше 1?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="240" y="1438" width="120" height="97" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-41" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="360" y="1430" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-42" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="1400" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-43" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="1530" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-44" value="Это не Синглтон" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="410" y="1400" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-45" value="Провреряем классы на статические и локальные объекты(поля) класса. Количество объектов больше 1?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="410" y="1490" width="120" height="97" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-46" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="530" y="1480" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-47" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="1450" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-48" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="530" y="1580" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-49" value="Это не Синглтон" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="580" y="1450" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-50" value="*Количество объектов класса глобально" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="140" y="1210" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-51" value="Найдена ли функция-друг или метод дружественного класса схожий на getInstance?" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="580" y="1548.5" width="120" height="101" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-52" value="&lt;div&gt;Добавляем признак:&lt;/div&gt;&lt;div&gt;если находим похожую функцию на getInstance&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
+          <mxGeometry x="240" y="1337" width="120" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-53" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="700" y="1528.5" width="50" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-54" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="700" y="1498.5" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-55" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="700" y="1628.5" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-56" value="Проверяем признаки getInstance" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="750" y="1498.5" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-57" value="Добавляем признак" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="755" y="1418.5" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="piuhwEUwTsL03-6AZ8m6-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;4 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Рассмотреть элементы наследования, обобщенность класса, попытаться найти замаскированные getInstance и SIngletone&#39;ы&lt;/div&gt;&lt;div&gt;Дополнительная цель: собрать информацию для более полного отчета&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="-85" y="1830" width="180" height="181" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

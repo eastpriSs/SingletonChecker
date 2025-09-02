@@ -127,6 +127,25 @@ private:
             return false;
         }
 
+        bool isSameType(QualType type1, QualType type2) {
+            return type1.getCanonicalType() == type2.getCanonicalType();
+        }
+
+        bool compareReturnTypeWithRecordType(CXXMethodDecl *method, CXXRecordDecl *record) {
+            QualType returnType = method->getReturnType();
+            QualType recordType = record->getASTContext().getRecordType(record);
+            
+            if (returnType->isPointerType() || returnType->isReferenceType())
+                returnType = returnType->getPointeeType();
+
+            return isSameType(returnType, recordType);
+        }
+
+        void registerClassForAnalysisData(CXXRecordDecl* clsAST) 
+        {
+            analysisData.className = clsAST->getNameAsString();
+            analysisData.location = clsAST->getLocation().printToString(Context->getSourceManager());
+        }
 
         bool isProbablyGetInstanceMethod(CXXMethodDecl *method) 
         {  
@@ -134,8 +153,7 @@ private:
            
            if (!(method->getReturnType()->isPointerType() ||  method->getReturnType()->isReferenceType()))
                return false;
-           
-           method->dump();
+
            for (Stmt* st : method->getBody()->children()) {
                 if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
                     Expr* retExpr = retStmt->getRetValue();
@@ -147,7 +165,14 @@ private:
                         }
                     }
                     else if (auto *unop = dyn_cast<UnaryOperator>(retExpr)){
-                        llvm::outs() << "TEST";
+                        Expr* subExpr = unop->getSubExpr();
+                        if (auto* declRef = dyn_cast<DeclRefExpr>(subExpr)){
+                            ValueDecl *valueDecl = declRef->getDecl();
+                            if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
+                                return (varDecl->isStaticLocal() 
+                                || (varDecl->isStaticDataMember() && (varDecl->getAccess() == AS_private)));
+                            }   
+                        }
                     }
                 }
            }
@@ -160,40 +185,51 @@ public:
         if (declaration->isEmbeddedInDeclarator() && !declaration->isFreeStanding()) {
             return true;
         }
-        
-        classStatistics.clear();
-        
+
+        if ( declaration->isInjectedClassName() ||
+            declaration->isLambda()) {
+            return true;
+        }
+
+        if (declaration->getFriendObjectKind() != Decl::FOK_None) {
+            return true;
+        }
+    
+        analysisData.clear();
+        registerClassForAnalysisData(declaration);
+
         // first stage of analysis
         for (const auto* c : declaration->ctors())
             if (c->getAccess() == AS_public && !c->isDeleted())
-               classStatistics.ctorsPrivate = false; 
+               analysisData.ctorsPrivate = false; 
         
         for (auto *method : declaration->methods()) {
             if (method->isStatic() 
-            && (method->getAccess() == AS_public)
-            && (method->getReturnType()->getPointeeType() == declaration->getTypeForDecl()->getCanonicalTypeUnqualified())){
-                classStatistics.hasMethodLikelyInstance = isProbablyGetInstanceMethod(method); 
+            && compareReturnTypeWithRecordType(method, declaration)) {
+                analysisData.hasMethodLikelyInstance = isProbablyGetInstanceMethod(method); 
+                if (analysisData.hasMethodLikelyInstance && (method->getAccess() != AS_public))
+                    analysisData.hiddenInstanceMethod = true;
             }
                 
             if (CXXConstructorDecl* ctrDecl = dyn_cast<CXXConstructorDecl>(method))
                 if (ctrDecl->isCopyConstructor() && ctrDecl->isDeleted())
-                    classStatistics.hasDeletedCopyConstuctor = true;
+                    analysisData.hasDeletedCopyConstuctor = true;
                     
             if (method->isCopyAssignmentOperator() && method->isDeleted())
-                classStatistics.hasDeletedAssigmentOperator = true;
+                analysisData.hasDeletedAssigmentOperator = true;
         
             // second stage of analysis
-            classStatistics.amountObjects += countClassStaticObject(declaration, method);
-            if (classStatistics.amountObjects > 1 || findClassLocalObject(declaration, method))
-                classStatistics.notSingleton = true;
+            analysisData.amountObjects += countClassStaticObject(declaration, method);
+            if (analysisData.amountObjects > 1 || findClassLocalObject(declaration, method))
+                analysisData.notSingleton = true;
         }
 
         // second stage of analysis  
-        if (!classStatistics.notSingleton) {
+        if (!analysisData.notSingleton) {
             for (auto* field : declaration->decls()) {
                 if (isClassObject(dyn_cast<VarDecl>(field), declaration)) { 
-                    if (++classStatistics.amountObjects > 1) {
-                        classStatistics.notSingleton = true;
+                    if (++analysisData.amountObjects > 1) {
+                        analysisData.notSingleton = true;
                         break;
                     }
                 }
@@ -201,14 +237,14 @@ public:
         }
 
         // third stage of analysis
-        if (!classStatistics.notSingleton) {
+        if (!analysisData.notSingleton) {
             for (auto it = declaration->friend_begin(); it != declaration->friend_end(); ++it) {
                 if (FriendDecl* friendDecl = *it) {
                     if (NamedDecl* nd = friendDecl->getFriendDecl()) {
                         if (FunctionDecl* funcFriend = dyn_cast<FunctionDecl>(nd)) {
-                           classStatistics.amountObjects += countClassStaticObject(declaration, funcFriend);
-                           if (classStatistics.amountObjects > 1 || findClassLocalObject(declaration, funcFriend)) {
-                                classStatistics.notSingleton = true;
+                           analysisData.amountObjects += countClassStaticObject(declaration, funcFriend);
+                           if (analysisData.amountObjects > 1 || findClassLocalObject(declaration, funcFriend)) {
+                                analysisData.notSingleton = true;
                                 break;
                            }
                         }
@@ -218,9 +254,9 @@ public:
                         QualType qt = tsi->getType();
                         if (const RecordType* rt = qt->getAs<RecordType>()) {
                             if (CXXRecordDecl* friendClss = dyn_cast<CXXRecordDecl>(rt->getDecl())) {
-                                classStatistics.amountObjects += countClassStaticObject(declaration, friendClss);
-                                if (classStatistics.amountObjects > 1 || findClassLocalObject(declaration, friendClss)){
-                                    classStatistics.notSingleton = true;
+                                analysisData.amountObjects += countClassStaticObject(declaration, friendClss);
+                                if (analysisData.amountObjects > 1 || findClassLocalObject(declaration, friendClss)){
+                                    analysisData.notSingleton = true;
                                     break;
                                 }
                             }
@@ -232,40 +268,94 @@ public:
 
         //declaration->dump();
 
-        classStatistics.dump();
+        analysisData.dump();
         return true;
     }
 
 private:
     ASTContext *Context;
 
-    struct SingletonSigns { // TODO rename
+    struct AnalysisData {
         bool ctorsPrivate                   : 1; 
         bool hasMethodLikelyInstance        : 1; 
         bool hasDeletedCopyConstuctor       : 1; 
         bool hasDeletedAssigmentOperator    : 1;
         bool notSingleton                   : 1;
+        bool hiddenInstanceMethod           : 1;
         unsigned int amountObjects          : 28;
+        CXXMethodDecl* methodLikeGetInstance = nullptr;      
+        std::string className;
+        std::string location;
+        
         inline void  clear() noexcept
         {
+            methodLikeGetInstance = nullptr;      
+            hiddenInstanceMethod = false;
             ctorsPrivate = true;
             hasMethodLikelyInstance = false;
             hasDeletedCopyConstuctor = false;
             hasDeletedAssigmentOperator = false;
             notSingleton = false;
-            amountObjects = 0; 
-        }
-        inline void dump() const noexcept  
-        {
-            llvm::outs() << ctorsPrivate 
-                         << hasMethodLikelyInstance
-                         << hasDeletedCopyConstuctor
-                         << hasDeletedAssigmentOperator
-                         << notSingleton
-                         << amountObjects;
+            amountObjects = 0;
+            className.clear();
+            location.clear();
+            
         }
 
-    } classStatistics;
+        inline void dump() const noexcept  
+        {
+            const int totalWidth = 66;
+            const int labelWidth = 35;
+            
+            auto printLine = [](const std::string& text) {
+                llvm::outs() << "║ " << text << "\n";
+            };
+            
+            auto printField = [&](const std::string& label, const std::string& value) {
+                std::string line = "|   • " + label + ":";
+                line.resize(labelWidth, ' ');
+                line += value;
+                printLine(line);
+            };
+            
+            llvm::outs() << "\n";
+            llvm::outs() << "╔══════════════════════════════════════════════════════════════════╗\n";
+            llvm::outs() << "║                     CLASS ANALYSIS REPORT                        ║\n";
+            llvm::outs() << "╠══════════════════════════════════════════════════════════════════╣\n";
+            
+            // Class info
+            printLine("Class:    " + className);
+            printLine("Location: " + location);
+            llvm::outs() << "╠══════════════════════════════════════════════════════════════════╣\n";
+            printLine("Singleton Pattern Analysis:");
+            
+            // Analysis fields
+            printField("Constructors private",        ctorsPrivate ? " ✓ YES" : "✗ NO");
+            printField("GetInstance method",          hasMethodLikelyInstance ? " ✓ FOUND" : "✗ NOT FOUND");
+            
+            if (hasMethodLikelyInstance) {
+                printField("GetInstance access",        hiddenInstanceMethod ? " ✗ HIDDEN" : "✓ PUBLIC");
+            }
+            
+            printField("Copy constructor deleted",    hasDeletedCopyConstuctor ? " ✓ YES" : "✗ NO");
+            printField("Assignment operator deleted", hasDeletedAssigmentOperator ? " ✓ YES" : "✗ NO");
+            printField("Static instances count",      std::to_string(amountObjects));
+            printField("Multiple instances detected", notSingleton ? " ✗ YES" : "✓ NO");
+            
+            // Final conclusion
+            llvm::outs() << "╠══════════════════════════════════════════════════════════════════╣\n";
+            
+            bool isSingleton = ctorsPrivate && hasMethodLikelyInstance && !hiddenInstanceMethod &&
+                             hasDeletedCopyConstuctor && hasDeletedAssigmentOperator && 
+                             !notSingleton && amountObjects <= 1;
+            
+            std::string conclusion = "Conclusion: " + std::string(isSingleton ? " ✓ LIKELY SINGLETON" : "✗ NOT A SINGLETON");
+            printLine(conclusion);
+            llvm::outs() << "╚══════════════════════════════════════════════════════════════════╝\n";
+            llvm::outs() << "\n";
+        }
+
+    } analysisData;
 };
 
 class ClassVisitorASTConsumer : public ASTConsumer {

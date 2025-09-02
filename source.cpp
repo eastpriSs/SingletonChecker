@@ -9,9 +9,9 @@ public:
     void y(){  }
     void z(){  }
 
-    static X* instance(){
+    static X& instance(){
         static X x;
-        return &x;
+        return x;
     }
 
 

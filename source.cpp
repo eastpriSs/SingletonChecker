@@ -1,3 +1,5 @@
+#include <iostream>
+
 class X
 {
 private:
@@ -9,31 +11,15 @@ public:
     void y(){  }
     void z(){  }
 
-    static X& instance(){
-        static X x;
-        return x;
-    }
-
-
     X(const X&) = delete;
     X& operator=(const X&) = delete;
 
-    friend void intrestingFriend();
-    friend class Y;
+    friend X& intrestingFriend();
 };
 
-class Y {
-    static X s;
-    X x;
-};
-
-template <typename T>
-T& single(){
-    static T singleton;
-    return singleton;
-}
-
-void intrestingFriend(){
+X& intrestingFriend() {
+    static X x;
+    return x;
 }
 
 int main(){

@@ -10,7 +10,6 @@ using namespace clang;
 namespace {
 
 
-
 class FunctionVisitor : public RecursiveASTVisitor<FunctionVisitor> {
 private:
     ASTContext *Context;
@@ -23,32 +22,48 @@ public:
             return true;
         }
         
+        if (!func->hasBody() || !func->getBody()) {
+            return true;
+        }
+        
+        if (!func->getReturnType()->isPointerType()) {
+            return true;
+        }
+        
         auto returnType = func->getReturnType()->getPointeeType();
         
-        for (Stmt* st : func->getBody()->children()){
+        for (Stmt* st : func->getBody()->children()) {
+            if (!st) continue;
+            
             if (auto *declStmt = dyn_cast<DeclStmt>(st)) {
-                    for (Decl *decl : declStmt->decls()) {
-                        if (auto *varDecl = dyn_cast<VarDecl>(decl)) {
-                            if (varDecl->isStaticLocal() ) {
- //                               llvm::outs() << "Found local variable ";
-                            }
+                for (Decl *decl : declStmt->decls()) {
+                    if (auto *varDecl = dyn_cast<VarDecl>(decl)) {
+                        if (varDecl->isStaticLocal()) {
                         }
                     }
-             }
-             if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
-                    Expr* retExpr = retStmt->getRetValue();
-                    if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
-                        ValueDecl *valueDecl = declRef->getDecl();
-                        if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
-                            if (varDecl->isStaticLocal() && varDecl->getType()->getCanonicalTypeUnqualified() == returnType)
-                                llvm::outs() << "";
+                }
+            }
+            
+            if (auto *retStmt = dyn_cast<ReturnStmt>(st)) {
+                Expr* retExpr = retStmt->getRetValue();
+                if (!retExpr) continue;
+                
+                if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)) {
+                    ValueDecl *valueDecl = declRef->getDecl();
+                    if (!valueDecl) continue;
+                    
+                    if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
+                        if (varDecl->isStaticLocal() && 
+                            varDecl->getType()->getCanonicalTypeUnqualified() == returnType) {
                         }
-                    }          
-              }
+                    }
+                }
+            }
         }
         return true;
     }
 };
+
 
 
 class ClassVisitor : public RecursiveASTVisitor<ClassVisitor> {
@@ -131,7 +146,7 @@ private:
             return type1.getCanonicalType() == type2.getCanonicalType();
         }
 
-        bool compareReturnTypeWithRecordType(CXXMethodDecl *method, CXXRecordDecl *record) {
+        bool compareReturnTypeWithRecordType(FunctionDecl *method, CXXRecordDecl *record) {
             QualType returnType = method->getReturnType();
             QualType recordType = record->getASTContext().getRecordType(record);
             
@@ -147,12 +162,14 @@ private:
             analysisData.location = clsAST->getLocation().printToString(Context->getSourceManager());
         }
 
-        bool isProbablyGetInstanceMethod(CXXMethodDecl *method) 
+        bool isProbablyGetInstanceFunction(FunctionDecl *method) 
         {  
            if (method && !method->hasBody()) return false;
            
            if (!(method->getReturnType()->isPointerType() ||  method->getReturnType()->isReferenceType()))
                return false;
+
+            method->dump();
 
            for (Stmt* st : method->getBody()->children()) {
                 if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
@@ -178,10 +195,33 @@ private:
            }
            return false;
         }
+
+        bool shouldSkipDeclaration(Decl *decl) 
+        {
+            if (!decl) return true;
+            
+            SourceLocation loc = decl->getLocation();
+            if (!SM->isInMainFile(loc) && !SM->isWrittenInMainFile(loc)) {
+                return true;
+            }
+            
+            if (SM->isInSystemHeader(loc) || SM->isInSystemMacro(loc)) {
+                return true;
+            }
+            
+            return false;
+    }
+
 public:
-    explicit ClassVisitor(ASTContext *Context) : Context(Context) {}
+    explicit ClassVisitor(ASTContext *Context) : Context(Context) {
+        SM = &Context->getSourceManager();
+    }
 
     bool VisitCXXRecordDecl(CXXRecordDecl *declaration) {
+        
+        if (shouldSkipDeclaration(declaration))
+            return true;
+
         if (declaration->isEmbeddedInDeclarator() && !declaration->isFreeStanding()) {
             return true;
         }
@@ -206,7 +246,7 @@ public:
         for (auto *method : declaration->methods()) {
             if (method->isStatic() 
             && compareReturnTypeWithRecordType(method, declaration)) {
-                analysisData.hasMethodLikelyInstance = isProbablyGetInstanceMethod(method); 
+                analysisData.hasMethodLikelyInstance = isProbablyGetInstanceFunction(method); 
                 if (analysisData.hasMethodLikelyInstance && (method->getAccess() != AS_public))
                     analysisData.hiddenInstanceMethod = true;
             }
@@ -242,6 +282,10 @@ public:
                 if (FriendDecl* friendDecl = *it) {
                     if (NamedDecl* nd = friendDecl->getFriendDecl()) {
                         if (FunctionDecl* funcFriend = dyn_cast<FunctionDecl>(nd)) {
+                            if (compareReturnTypeWithRecordType(funcFriend, declaration)) {
+                                analysisData.hasFriendFunctionLikelyInstance = isProbablyGetInstanceFunction(funcFriend);
+                                if (analysisData.hasFriendFunctionLikelyInstance) analysisData.friendFunctionLikeGetInstance = funcFriend;
+                           }
                            analysisData.amountObjects += countClassStaticObject(declaration, funcFriend);
                            if (analysisData.amountObjects > 1 || findClassLocalObject(declaration, funcFriend)) {
                                 analysisData.notSingleton = true;
@@ -274,16 +318,19 @@ public:
 
 private:
     ASTContext *Context;
+    SourceManager* SM;
 
     struct AnalysisData {
         bool ctorsPrivate                   : 1; 
         bool hasMethodLikelyInstance        : 1; 
+        bool hasFriendFunctionLikelyInstance: 1; 
         bool hasDeletedCopyConstuctor       : 1; 
         bool hasDeletedAssigmentOperator    : 1;
         bool notSingleton                   : 1;
         bool hiddenInstanceMethod           : 1;
         unsigned int amountObjects          : 28;
-        CXXMethodDecl* methodLikeGetInstance = nullptr;      
+        CXXMethodDecl* methodLikeGetInstance         = nullptr;      
+        FunctionDecl* friendFunctionLikeGetInstance  = nullptr;      
         std::string className;
         std::string location;
         
@@ -297,6 +344,7 @@ private:
             hasDeletedAssigmentOperator = false;
             notSingleton = false;
             amountObjects = 0;
+            hasFriendFunctionLikelyInstance = false;
             className.clear();
             location.clear();
             
@@ -337,6 +385,7 @@ private:
                 printField("GetInstance access",        hiddenInstanceMethod ? " ✗ HIDDEN" : "✓ PUBLIC");
             }
             
+            printField("Has friend function like getInstance()", hasFriendFunctionLikelyInstance ? " ✓ YES" : "✗ NO");
             printField("Copy constructor deleted",    hasDeletedCopyConstuctor ? " ✓ YES" : "✗ NO");
             printField("Assignment operator deleted", hasDeletedAssigmentOperator ? " ✓ YES" : "✗ NO");
             printField("Static instances count",      std::to_string(amountObjects));
@@ -345,11 +394,8 @@ private:
             // Final conclusion
             llvm::outs() << "╠══════════════════════════════════════════════════════════════════╣\n";
             
-            bool isSingleton = ctorsPrivate && hasMethodLikelyInstance && !hiddenInstanceMethod &&
-                             hasDeletedCopyConstuctor && hasDeletedAssigmentOperator && 
-                             !notSingleton && amountObjects <= 1;
             
-            std::string conclusion = "Conclusion: " + std::string(isSingleton ? " ✓ LIKELY SINGLETON" : "✗ NOT A SINGLETON");
+            std::string conclusion = "Conclusion: " + std::string(notSingleton ? " ✓ LIKELY SINGLETON" : "✗ NOT A SINGLETON");
             printLine(conclusion);
             llvm::outs() << "╚══════════════════════════════════════════════════════════════════╝\n";
             llvm::outs() << "\n";

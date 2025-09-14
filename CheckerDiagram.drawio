@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" version="28.1.2">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.1">
   <diagram name="Страница — 1" id="4gzEwH-x4celyBJpQ0oq">
-    <mxGraphModel dx="1826" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1826" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -106,7 +106,7 @@
             <mxPoint x="680" y="330" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="fUvLrTciA-M0m8CRBqld-26" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;1 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Смотрим общие черты класса: конструкторы, операторы присваивания. &lt;br&gt;&lt;/div&gt;&lt;div&gt;Дополнительная цель:&lt;/div&gt;&lt;div&gt;Ищем методы похожие на getInstance&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="fUvLrTciA-M0m8CRBqld-26" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;1 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Смотрим общие черты класса: конструкторы, операторы присваивания. &lt;br&gt;&lt;/div&gt;&lt;div&gt;Дополнительная цель:&lt;/div&gt;&lt;div&gt;Ищем методы похожие на getInstance&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="-80" y="585" width="180" height="175" as="geometry" />
         </mxCell>
         <mxCell id="fUvLrTciA-M0m8CRBqld-27" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
@@ -121,7 +121,7 @@
         <mxCell id="fUvLrTciA-M0m8CRBqld-29" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
           <mxGeometry x="-20" y="411" width="50" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="fUvLrTciA-M0m8CRBqld-30" value="Все конструкторы приватны или защищены и не удалены?" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="fUvLrTciA-M0m8CRBqld-30" value="Все конструкторы приватны или защищены и не удалены?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="240" y="650" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="fUvLrTciA-M0m8CRBqld-31" value="Да" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -202,7 +202,7 @@
         <mxCell id="SbZpYfy8iU4GfchqcEHP-10" value="&lt;div&gt;Добавляем признак:&lt;/div&gt;&lt;div&gt;удален/нет&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
           <mxGeometry x="1020" y="495" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-13" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;2 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Проверяем поля и методы на предмет создание объекта класса.&lt;/div&gt;&lt;div&gt;Дополнительная цель: Проверить методы схожие с getInstance&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-13" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;2 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Проверяем поля и методы на предмет создание объекта класса.&lt;/div&gt;&lt;div&gt;Дополнительная цель: Проверить методы схожие с getInstance&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="-85" y="930" width="180" height="175" as="geometry" />
         </mxCell>
         <mxCell id="SbZpYfy8iU4GfchqcEHP-14" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
@@ -268,13 +268,10 @@
         <mxCell id="SbZpYfy8iU4GfchqcEHP-33" value="Это не Синглтон" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=4;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
           <mxGeometry x="830" y="1020" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-34" value="Проверяем методы схожие с getInstance" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-          <mxGeometry x="830" y="1120" width="120" height="60" as="geometry" />
-        </mxCell>
         <mxCell id="SbZpYfy8iU4GfchqcEHP-35" value="Анализ завершел, отчет составлен." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;strokeWidth=3;" parent="1" vertex="1">
           <mxGeometry x="970" y="160" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-37" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;3 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Проверить друзей на наличие объекта класса.&lt;/div&gt;&lt;div&gt;Дополнительная цель: найти схожую функцию с getInstance&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-37" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;3 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Проверить друзей на наличие объекта класса.&lt;/div&gt;&lt;div&gt;Дополнительная цель: найти схожую функцию с getInstance&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="-80" y="1380" width="180" height="175" as="geometry" />
         </mxCell>
         <mxCell id="SbZpYfy8iU4GfchqcEHP-38" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
@@ -319,7 +316,7 @@
         <mxCell id="SbZpYfy8iU4GfchqcEHP-50" value="*Количество объектов класса глобально" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="140" y="1210" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-51" value="Найдена ли функция-друг или метод дружественного класса схожий на getInstance?" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-51" value="Найдена ли функция-друг или метод дружественного класса схожий на getInstance?" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="580" y="1548.5" width="120" height="101" as="geometry" />
         </mxCell>
         <mxCell id="SbZpYfy8iU4GfchqcEHP-52" value="&lt;div&gt;Добавляем признак:&lt;/div&gt;&lt;div&gt;если находим похожую функцию на getInstance&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#bac8d3;strokeColor=#23445d;" parent="1" vertex="1">
@@ -334,13 +331,10 @@
         <mxCell id="SbZpYfy8iU4GfchqcEHP-55" value="Нет" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="700" y="1628.5" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-56" value="Проверяем признаки getInstance" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="SbZpYfy8iU4GfchqcEHP-56" value="Проверяем признаки getInstance" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="750" y="1498.5" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-57" value="Добавляем признак" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-          <mxGeometry x="755" y="1418.5" width="120" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="piuhwEUwTsL03-6AZ8m6-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;4 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Рассмотреть элементы наследования, обобщенность класса, попытаться найти замаскированные getInstance и SIngletone&#39;ы&lt;/div&gt;&lt;div&gt;Дополнительная цель: собрать информацию для более полного отчета&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+        <mxCell id="piuhwEUwTsL03-6AZ8m6-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;4 этап анализа&lt;/h1&gt;&lt;div&gt;Основная цель: Рассмотреть элементы наследования, обобщенность класса, попытаться найти замаскированные getInstance и SIngletone&#39;ы&lt;/div&gt;&lt;div&gt;Дополнительная цель: собрать информацию для более полного отчета&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
           <mxGeometry x="-85" y="1830" width="180" height="181" as="geometry" />
         </mxCell>
       </root>

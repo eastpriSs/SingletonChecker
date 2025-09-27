@@ -76,6 +76,7 @@ private:
             return !varDecl->getType()->isPointerType()
                 && (varDecl->getType()->getCanonicalTypeUnqualified() == clssDecl->getTypeForDecl()->getCanonicalTypeUnqualified());
         }
+        
 
         int countClassStaticObject(CXXRecordDecl* clssDecl, FunctionDecl* funcDecl)
         {
@@ -105,9 +106,10 @@ private:
                 if (isClassObject(dyn_cast<VarDecl>(field), clssDecl))
                    ++count;
             
-            for (auto* method : targetClssDecl->methods())
+            for (auto* method : targetClssDecl->methods()) 
                 count += countClassStaticObject(clssDecl, method);
-
+            
+            llvm::outs() << "'\nCOunt:" << count << '\n'; 
             return count; 
         }
 
@@ -142,9 +144,12 @@ private:
             return false;
         }
 
+
         bool isSameType(QualType type1, QualType type2) {
-            return type1.getCanonicalType() == type2.getCanonicalType();
+          return type1.getTypePtr()->getUnqualifiedDesugaredType() == 
+                 type2.getTypePtr()->getUnqualifiedDesugaredType();
         }
+
 
         bool compareReturnTypeWithRecordType(FunctionDecl *method, CXXRecordDecl *record) {
             QualType returnType = method->getReturnType();
@@ -162,6 +167,17 @@ private:
             analysisData.location = clsAST->getLocation().printToString(Context->getSourceManager());
         }
 
+        template<typename Op1, typename Op2>
+        bool isEqualBetween(BinaryOperator* bo) 
+        {
+           if (!bo) return false; 
+           if (bo->getOpcode() != BO_EQ)
+               return false;
+           if (dyn_cast<Op1>(bo->getLHS()->IgnoreImpCasts()) && dyn_cast<Op2>(bo->getRHS()->IgnoreImpCasts()))
+               return true;
+           return false;
+        }
+
         bool isProbablyGetInstanceFunction(FunctionDecl *method) 
         {  
            if (method && !method->hasBody()) return false;
@@ -169,26 +185,68 @@ private:
            if (!(method->getReturnType()->isPointerType() ||  method->getReturnType()->isReferenceType()))
                return false;
 
-            method->dump();
+           method->dump();
 
            for (Stmt* st : method->getBody()->children()) {
-                if (auto *retStmt = dyn_cast<ReturnStmt>(st)){
+                if (auto *retStmt = dyn_cast<ReturnStmt>(st)) {
                     Expr* retExpr = retStmt->getRetValue();
+
+                    retExpr =  retExpr->IgnoreParenCasts();
+
+                    if (auto *unop = dyn_cast<UnaryOperator>(retExpr)){
+                        if (unop->getOpcode() != UO_AddrOf && 
+                            unop->getOpcode() != UO_Deref) {
+                            continue;
+                        }
+                        retExpr = unop->getSubExpr()->IgnoreParenCasts(); 
+                    }
+
                     if (auto *declRef = dyn_cast<DeclRefExpr>(retExpr)){
                         ValueDecl *valueDecl = declRef->getDecl();
                         if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
-                            return varDecl->isStaticLocal() 
-                            || (varDecl->isStaticDataMember() && (varDecl->getAccess() == AS_private));
+                            if (varDecl->isStaticLocal() 
+                            || (varDecl->isStaticDataMember() && (varDecl->getAccess() == AS_private))) {
+                                // if find instance field in IF Statement and return statement
+                                if (analysisData.instanceField && analysisData.instanceField == varDecl){
+                                    analysisData.probabalyNaiveSingletone = true;
+                                }
+                                analysisData.instanceField = varDecl;
+                                return true;
+                            }
                         }
                     }
-                    else if (auto *unop = dyn_cast<UnaryOperator>(retExpr)){
-                        Expr* subExpr = unop->getSubExpr();
-                        if (auto* declRef = dyn_cast<DeclRefExpr>(subExpr)){
-                            ValueDecl *valueDecl = declRef->getDecl();
-                            if (VarDecl *varDecl = dyn_cast<VarDecl>(valueDecl)) {
-                                return (varDecl->isStaticLocal() 
-                                || (varDecl->isStaticDataMember() && (varDecl->getAccess() == AS_private)));
-                            }   
+                }
+                else if (auto* ifSt = dyn_cast<IfStmt>(st)) {
+                    Expr* se = ifSt->getCond()->IgnoreImpCasts();
+                    
+                    // Context:    !instance
+                    if (auto* un = dyn_cast<UnaryOperator>(se)) {
+                        if (un->getOpcode() == UO_LNot) {
+                            se = un->getSubExpr()->IgnoreImpCasts();
+                            analysisData.typeNaiveSingleton = AnalysisData::UnaryOperatorInCondition; 
+                        }
+                    }
+
+                    // Context:    instance == nullptr  /  instance == NULL
+                    else if (auto* bn = dyn_cast<BinaryOperator>(se)) {
+                        
+                        if (isEqualBetween<DeclRefExpr, CXXNullPtrLiteralExpr>(bn)) 
+                            analysisData.typeNaiveSingleton = AnalysisData::BinaryOperatorInConditionNullptr; 
+                        else if (isEqualBetween<DeclRefExpr, GNUNullExpr>(bn)) 
+                            analysisData.typeNaiveSingleton = AnalysisData::BinaryOperatorInConditionNull; 
+                        else 
+                            analysisData.typeNaiveSingleton = AnalysisData::UnknownCondition; 
+                       
+                        if (analysisData.typeNaiveSingleton != AnalysisData::UnknownCondition)
+                            se = bn->getLHS();
+                    }
+                    
+                    if (auto* declRef = dyn_cast<DeclRefExpr>(se)) {
+                        ValueDecl* vd = declRef->getDecl();
+                        if (VarDecl *varDecl = dyn_cast<VarDecl>(vd)) {
+                            if (varDecl->isStaticLocal() 
+                            || (varDecl->isStaticDataMember() && (varDecl->getAccess() == AS_private)))
+                                analysisData.instanceField = varDecl;
                         }
                     }
                 }
@@ -231,18 +289,29 @@ public:
             return true;
         }
 
+        /*
         if (declaration->getFriendObjectKind() != Decl::FOK_None) {
             return true;
         }
-    
+        */
+        
         analysisData.clear();
         registerClassForAnalysisData(declaration);
 
+       
         // first stage of analysis
-        for (const auto* c : declaration->ctors())
-            if (c->getAccess() == AS_public && !c->isDeleted())
+        for (const auto* c : declaration->ctors()) {
+            if (c->getAccess() == AS_public && !c->isDeleted()) {
                analysisData.ctorsPrivate = false; 
+               break;
+            }
+        }
         
+        if (!analysisData.ctorsPrivate)
+            return true;
+        
+        analysisData.hasDeletedCopyConstuctor = true;
+        analysisData.hasDeletedAssigmentOperator = true;
         for (auto *method : declaration->methods()) {
             if (method->isStatic() 
             && compareReturnTypeWithRecordType(method, declaration)) {
@@ -252,11 +321,13 @@ public:
             }
                 
             if (CXXConstructorDecl* ctrDecl = dyn_cast<CXXConstructorDecl>(method))
-                if (ctrDecl->isCopyConstructor() && ctrDecl->isDeleted())
-                    analysisData.hasDeletedCopyConstuctor = true;
-                    
-            if (method->isCopyAssignmentOperator() && method->isDeleted())
-                analysisData.hasDeletedAssigmentOperator = true;
+            {
+                if (ctrDecl->isCopyOrMoveConstructor()) 
+                    analysisData.hasDeletedCopyConstuctor &= ctrDecl->isDeleted();
+            }
+
+            if (method->isCopyAssignmentOperator())
+                analysisData.hasDeletedAssigmentOperator &= method->isDeleted();
         
             // second stage of analysis
             analysisData.amountObjects += countClassStaticObject(declaration, method);
@@ -297,7 +368,9 @@ public:
                     else if (TypeSourceInfo* tsi = friendDecl->getFriendType()) {
                         QualType qt = tsi->getType();
                         if (const RecordType* rt = qt->getAs<RecordType>()) {
-                            if (CXXRecordDecl* friendClss = dyn_cast<CXXRecordDecl>(rt->getDecl())) {
+                            if (CXXRecordDecl* friendClss = dyn_cast<CXXRecordDecl>(rt->getDecl())) { 
+                                if (ClassTemplateSpecializationDecl* ctsd = dyn_cast<ClassTemplateSpecializationDecl>(friendClss))
+                                //    ctsd->get
                                 analysisData.amountObjects += countClassStaticObject(declaration, friendClss);
                                 if (analysisData.amountObjects > 1 || findClassLocalObject(declaration, friendClss)){
                                     analysisData.notSingleton = true;
@@ -328,15 +401,29 @@ private:
         bool hasDeletedAssigmentOperator    : 1;
         bool notSingleton                   : 1;
         bool hiddenInstanceMethod           : 1;
-        unsigned int amountObjects          : 28;
+        bool probabalyNaiveSingletone       : 1;
+        bool probabalyCRTPSingletone        : 1;
+        unsigned int amountObjects          : 27;
+        
+        enum TypeOfNaiveSingleton {
+            UnaryOperatorInCondition,
+            BinaryOperatorInConditionNullptr,
+            BinaryOperatorInConditionNull,
+            UnknownCondition,
+        } typeNaiveSingleton;
+
         CXXMethodDecl* methodLikeGetInstance         = nullptr;      
         FunctionDecl* friendFunctionLikeGetInstance  = nullptr;      
+        VarDecl* instanceField                       = nullptr;
         std::string className;
         std::string location;
         
         inline void  clear() noexcept
         {
+            probabalyCRTPSingletone = false;
             methodLikeGetInstance = nullptr;      
+            friendFunctionLikeGetInstance = nullptr;
+            instanceField = nullptr;
             hiddenInstanceMethod = false;
             ctorsPrivate = true;
             hasMethodLikelyInstance = false;
@@ -344,6 +431,7 @@ private:
             hasDeletedAssigmentOperator = false;
             notSingleton = false;
             amountObjects = 0;
+            probabalyNaiveSingletone = false;
             hasFriendFunctionLikelyInstance = false;
             className.clear();
             location.clear();
@@ -352,8 +440,8 @@ private:
 
         inline void dump() const noexcept  
         {
-            const int totalWidth = 66;
-            const int labelWidth = 35;
+            const int totalWidth = 76;
+            const int labelWidth = 55;
             
             auto printLine = [](const std::string& text) {
                 llvm::outs() << "║ " << text << "\n";
@@ -385,10 +473,11 @@ private:
                 printField("GetInstance access",        hiddenInstanceMethod ? " ✗ HIDDEN" : "✓ PUBLIC");
             }
             
-            printField("Has friend function like getInstance()", hasFriendFunctionLikelyInstance ? " ✓ YES" : "✗ NO");
+            printField("Friend function like getInstance()", hasFriendFunctionLikelyInstance ? " ✓ YES" : "✗ NO");
             printField("Copy constructor deleted",    hasDeletedCopyConstuctor ? " ✓ YES" : "✗ NO");
             printField("Assignment operator deleted", hasDeletedAssigmentOperator ? " ✓ YES" : "✗ NO");
             printField("Static instances count",      std::to_string(amountObjects));
+            printField("Probably naive singletone",      probabalyNaiveSingletone ? " ✓ YES" : "✗ NO");
             printField("Multiple instances detected", notSingleton ? " ✗ YES" : "✓ NO");
             
             // Final conclusion
@@ -399,6 +488,7 @@ private:
             printLine(conclusion);
             llvm::outs() << "╚══════════════════════════════════════════════════════════════════╝\n";
             llvm::outs() << "\n";
+            
         }
 
     } analysisData;

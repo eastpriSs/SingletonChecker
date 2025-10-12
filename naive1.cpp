@@ -8,16 +8,10 @@ private:
 
 public:
     static const NaiveSingleton* getInstance() {
-        if (instance == nullptr) {
-            instance = new NaiveSingleton();
-        }
-        return instance;
+        return (nullptr != instance) ? instance : instance = new NaiveSingleton();
     }
     
-    static void destroy() {
-        delete instance;
-        instance = nullptr;
-    }
+    
 };
 
 NaiveSingleton* NaiveSingleton::instance = nullptr;

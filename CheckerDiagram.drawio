@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.4">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36" version="28.2.8">
   <diagram name="Страница — 1" id="4gzEwH-x4celyBJpQ0oq">
-    <mxGraphModel dx="1826" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1588" dy="661" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -151,8 +151,8 @@
         <mxCell id="fUvLrTciA-M0m8CRBqld-43" value="AST методов класса" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="430" y="590" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="fUvLrTciA-M0m8CRBqld-44" value="Сигнатура, приватность, статичность схожи с getInstance" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="490" y="590" width="120" height="60" as="geometry" />
+        <mxCell id="fUvLrTciA-M0m8CRBqld-44" value="Сигнатура, приватность, статичность схожи с getInstance&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="490" y="575" width="120" height="100" as="geometry" />
         </mxCell>
         <mxCell id="fUvLrTciA-M0m8CRBqld-45" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
           <mxGeometry x="610" y="565" width="50" height="100" as="geometry" />
@@ -168,18 +168,6 @@
         </mxCell>
         <mxCell id="SbZpYfy8iU4GfchqcEHP-1" value="Проверяем признаки getInstance" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="660" y="540" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="SbZpYfy8iU4GfchqcEHP-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="SbZpYfy8iU4GfchqcEHP-9" edge="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="965" y="608" as="sourcePoint" />
-            <mxPoint x="1005" y="608" as="targetPoint" />
-            <Array as="points">
-              <mxPoint x="990" y="608" />
-              <mxPoint x="990" y="603" />
-              <mxPoint x="1005" y="603" />
-              <mxPoint x="1005" y="605" />
-            </Array>
-          </mxGeometry>
         </mxCell>
         <mxCell id="SbZpYfy8iU4GfchqcEHP-2" value="Проверяем копирующий конструктор" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="850" y="575" width="120" height="60" as="geometry" />
@@ -378,6 +366,12 @@
         </mxCell>
         <mxCell id="QHx7-mU7PCQxi-qtKia_-16" value="Подозрение на CRTP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
           <mxGeometry x="577" y="1823" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="timmAei_RjVc9Q7vpIel-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="SbZpYfy8iU4GfchqcEHP-2" target="SbZpYfy8iU4GfchqcEHP-9" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="970" y="610" as="sourcePoint" />
+            <mxPoint x="1020" y="560" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>

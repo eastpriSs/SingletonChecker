@@ -1,15 +1,18 @@
 class NaiveSingleton {
 private:
-    
+   
+    static bool isCreated;
     static NaiveSingleton* instance;
     
-    NaiveSingleton() {}
+    NaiveSingleton() {
+        isCreated = true;
+    }
     NaiveSingleton(const NaiveSingleton&) = delete;
     NaiveSingleton& operator=(const NaiveSingleton&) = delete;
 
 public:
     static const NaiveSingleton* getInstance() {
-        return (instance != nullptr) ? instance : (instance = new NaiveSingleton());
+        return (isCreated) ? instance : (instance = new NaiveSingleton());
     }
 };
 

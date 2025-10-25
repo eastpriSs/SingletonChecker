@@ -7,13 +7,10 @@ private:
 public:
     X(const X&) = delete;
     X& operator=(const X&) = delete;
-    static X& intrestingFriend() {
-        static X x;
-        return x;
+    static X& getInstance() {
+        static X* instance = new X();
+        return *instance;
     }
 };
-
-
-
 int main(){
 }

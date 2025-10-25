@@ -28,7 +28,6 @@ namespace AnalysisAlgorithm
                 }
             }
             
-            // Рекурсивно обходим дочерние statements
             for (Stmt* child : stmt->children()) {
                 findAssignmentsInStmt(child, assignments);
             }
@@ -104,15 +103,18 @@ namespace AnalysisAlgorithm
                  type2.getTypePtr()->getUnqualifiedDesugaredType();
         }
 
-
         bool compareReturnTypeWithRecordType(FunctionDecl *method, CXXRecordDecl *record) {
+            if (!method || !record) return false;
+            
             QualType returnType = method->getReturnType();
             QualType recordType = record->getASTContext().getRecordType(record);
             
-            if (returnType->isPointerType() || returnType->isReferenceType())
+            if (returnType->isPointerType() || returnType->isReferenceType()) {
                 returnType = returnType->getPointeeType();
+            }
 
-            return isSameType(returnType, recordType);
+            return isSameType(returnType.getUnqualifiedType(), 
+                             recordType.getUnqualifiedType());
         }
 
         template<typename Op1, typename Op2>
@@ -209,7 +211,9 @@ private:
         bool hiddenInstanceMethod           : 1;
         bool probabalyNaiveSingletone       : 1;
         bool probabalyCRTPSingletone        : 1;
+        bool unknownPatternSingletone       : 1;
         bool probablyMayersSingletone       : 1;
+        bool probablyFlagsNaiveSingletone   : 1;
         unsigned int amountObjects          : 27;
         
         enum ConditionPatternInGetInstance {
@@ -285,8 +289,10 @@ private:
             printField("Copy constructor deleted",    hasDeletedCopyConstuctor ? " ✓ YES" : "✗ NO");
             printField("Assignment operator deleted", hasDeletedAssigmentOperator ? " ✓ YES" : "✗ NO");
             printField("Static instances count",      std::to_string(amountObjects));
-            printField("Probably naive singletone",      probabalyNaiveSingletone ? " ✓ YES" : "✗ NO");
-            printField("Probably Mayer's singletone",   probablyMayersSingletone ? " ✓ YES" : "✗ NO");
+            printField("Probably naive singltone",      probabalyNaiveSingletone ? " ✓ YES" : "✗ NO");
+            printField("Probably naive singltone with flags", probablyFlagsNaiveSingletone ? " ✓ YES" : "✗ NO");
+            printField("Probably Mayer's singltone",   probablyMayersSingletone ? " ✓ YES" : "✗ NO");
+            printField("Probably CRTP singltone",   probabalyCRTPSingletone ? " ✓ YES" : "✗ NO");
             printField("Multiple instances detected", notSingleton ? "  YES" : " NO");
             
             // Final conclusion
@@ -322,7 +328,7 @@ private:
             return {var, AnalysisData::VarInCondition};
         
         //  !instance
-        if (auto* unOp = dyn_cast<UnaryOperator>(clearCE)) {
+        else if (auto* unOp = dyn_cast<UnaryOperator>(clearCE)) {
             if (unOp->getOpcode() == UO_LNot) {
                 Expr* subExpr = unOp->getSubExpr()->IgnoreParenImpCasts();
                     return {getVarDeclFromExpr(subExpr), AnalysisData::UnaryOperatorInCondition};
@@ -330,7 +336,7 @@ private:
         }
         
         // (instance == nullptr, nullptr == instance и т.д.)
-        if (auto* binOp = dyn_cast<BinaryOperator>(clearCE)) {
+        else if (auto* binOp = dyn_cast<BinaryOperator>(clearCE)) {
             if (binOp->getOpcode() == BO_EQ || binOp->getOpcode() == BO_NE) {
                 Expr* lhs = binOp->getLHS()->IgnoreParenImpCasts();
                 Expr* rhs = binOp->getRHS()->IgnoreParenImpCasts();
@@ -353,8 +359,9 @@ private:
         }
         
         //  (instance ? ... : ...)
-        if (auto* condOp = dyn_cast<ConditionalOperator>(clearCE)) 
+        else if (auto* condOp = dyn_cast<ConditionalOperator>(clearCE)) 
             return analysisCondition(condOp->getCond());
+        
         return {nullptr, AnalysisData::UnknownCondition};
     }
 
@@ -366,101 +373,132 @@ private:
             analysisData.location = clsAST->getLocation().printToString(Context->getSourceManager());
         }
 
-     
-        bool isProbablyGetInstanceFunction(FunctionDecl *method) 
-        {  
+        bool isValidSingletonMethodSignature(FunctionDecl *method) {
+            return method && method->hasBody() && 
+               (method->getReturnType()->isPointerType() || 
+                method->getReturnType()->isReferenceType());
+        }
+        
+        VarDecl* analyzeReturnExpression(Expr* retExpr) {
+            using AnalysisAlgorithm::getVarDeclFromExpr;
+            
+            if (!retExpr) return nullptr;
+            
+            retExpr = retExpr->IgnoreParenImpCasts();
+            VarDecl* returnedVar = getVarDeclFromExpr(retExpr);
+            
+            // Handle unary operators (& and *)
+            if (auto* unop = dyn_cast<UnaryOperator>(retExpr)) {
+                if (unop->getOpcode() == UO_AddrOf || unop->getOpcode() == UO_Deref) {
+                    returnedVar = getVarDeclFromExpr(unop->getSubExpr()->IgnoreParenCasts());
+                }
+            }
+            // Handle conditional operator (?:)
+            else if (auto* condOp = dyn_cast<ConditionalOperator>(retExpr)) {
+                returnedVar = analyzeConditionalOperator(condOp);
+            }
+            
+            return returnedVar;
+        }
+        
+        VarDecl* analyzeConditionalOperator(ConditionalOperator* condOp) {
+            using AnalysisAlgorithm::getVarDeclFromExpr;
+            
+            auto conditionResult = analysisCondition(condOp->getCond());
+            VarDecl* conditionVar = conditionResult.extracted;
+            
+            if (!conditionVar) {
+                analysisData.unknownPatternSingletone = true;
+                return nullptr;
+            }
+            
+            VarDecl* returnedVar = getVarDeclFromExpr(condOp->getTrueExpr()) ? : getVarDeclFromExpr(condOp->getFalseExpr());
+            
+            if (returnedVar != conditionVar) {
+                if (conditionVar->getType()->isBooleanType()) {
+                    analysisData.probablyFlagsNaiveSingletone = true;
+                } else {
+                    analysisData.unknownPatternSingletone = true;
+                }
+            }
+            
+            return returnedVar;
+        }
+        
+        void analyzeReturnStatement(ReturnStmt* retStmt) {
+            using AnalysisAlgorithm::getVarDeclFromExpr;
+            
+            Expr* retExpr = retStmt->getRetValue();
+            if (!retExpr) return;
+            
+            VarDecl* returnedVar = analyzeReturnExpression(retExpr);
+            
+            if (returnedVar) {
+                analysisData.instanceField = returnedVar;
+                // Mayer's pattern
+                if (returnedVar->isStaticLocal()) {
+                    analysisData.probablyMayersSingletone = true;
+                }
+                // Naive pattern
+                else if (returnedVar->isStaticDataMember() && 
+                        returnedVar->getAccess() == AS_private) {
+                    analysisData.probabalyNaiveSingletone = true;
+                }
+            }
+        }
+        
+        void analyzeIfStatement(IfStmt* ifStmt) {
             using AnalysisAlgorithm::getVarDeclFromExpr;
             using AnalysisAlgorithm::findAssignmentsInStmt;
-
-            if (!method || !method->hasBody()) return false;
             
-            if (!(method->getReturnType()->isPointerType() ||  
-                  method->getReturnType()->isReferenceType())) {
-                return false;
+            Expr* condition = ifStmt->getCond();
+            if (!condition) return;
+            
+            auto conditionResult = analysisCondition(condition);
+            VarDecl* conditionVar = conditionResult.extracted;
+            
+            if (!conditionVar) return;
+            
+            Stmt* thenBody = ifStmt->getThen();
+            if (!thenBody) return;
+            
+            std::vector<BinaryOperator*> assignments;
+            findAssignmentsInStmt(thenBody, assignments);
+            
+            for (auto* assign : assignments) {
+                if (assign->getOpcode() == BO_Assign) {
+                    VarDecl* assignedVar = getVarDeclFromExpr(assign->getLHS());
+                    if (assignedVar && assignedVar == conditionVar) {
+                        if (assignedVar->isStaticDataMember() && 
+                            assignedVar->getAccess() == AS_private) {
+                            analysisData.instanceField = assignedVar;
+                            analysisData.probabalyNaiveSingletone = true;
+                            break;
+                        }
+                    }
+                }
             }
+        }
 
+        bool isProbablyGetInstanceFunction(FunctionDecl *method) 
+        {  
+            if (!isValidSingletonMethodSignature(method))
+                return false;
+
+            // Analyze all statements in the function body
             for (Stmt* stmt : method->getBody()->children()) {
                 if (!stmt) continue;
                 
-                // Return statements
                 if (auto *retStmt = dyn_cast<ReturnStmt>(stmt)) {
-                    Expr* retExpr = retStmt->getRetValue();
-                    if (!retExpr) continue;
-                    
-                    retExpr = retExpr->IgnoreParenImpCasts();
-                    VarDecl* returnedVar = getVarDeclFromExpr(retExpr);
-                   
-                    // return *instance / return &instance
-                    if (auto *unop = dyn_cast<UnaryOperator>(retExpr)){
-                        if (unop->getOpcode() != UO_AddrOf && 
-                            unop->getOpcode() != UO_Deref) {
-                            continue;
-                        }
-                        returnedVar = getVarDeclFromExpr(unop->getSubExpr()->IgnoreParenCasts()); 
-                    }
-
-                    if (returnedVar) {
-                        // Mayer's pattern
-                        if (returnedVar->isStaticLocal()) {
-                            analysisData.instanceField = returnedVar;
-                            analysisData.probablyMayersSingletone = true;
-                        }
-                    }
+                    analyzeReturnStatement(retStmt);
                 }
-                
-                // Naive Singletone
                 else if (auto* ifStmt = dyn_cast<IfStmt>(stmt)) {
-                    Expr* condition = ifStmt->getCond();
-                    if (!condition) continue;
-                    
-                    auto conditionResult = analysisCondition(condition);
-                    VarDecl* conditionVar = conditionResult.extracted;
-                    
-                    if (conditionVar) {
-                        Stmt* thenBody = ifStmt->getThen();
-                        if (thenBody) {
-                            std::vector<BinaryOperator*> assignments;
-                            findAssignmentsInStmt(thenBody, assignments);
-                            
-                            for (auto* assign : assignments) {
-                                if (assign->getOpcode() == BO_Assign) {
-                                    VarDecl* assignedVar = getVarDeclFromExpr(assign->getLHS());
-                                    if (assignedVar && assignedVar == conditionVar) {
-                                        if (assignedVar->isStaticDataMember() && 
-                                            assignedVar->getAccess() == AS_private) {
-                                            analysisData.instanceField = assignedVar;
-                                            analysisData.probabalyNaiveSingletone = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                //  (... ? true_expr : false_expr)
-                else if (auto* condOp = dyn_cast<ConditionalOperator>(stmt)) {
-                    Expr* condition = condOp->getCond();
-                    Expr* trueExpr = condOp->getTrueExpr();
-                    Expr* falseExpr = condOp->getFalseExpr();
-                    
-                    auto conditionResult = analysisCondition(condition);
-                    VarDecl* conditionVar = conditionResult.extracted;
-                    
-                    if (conditionVar) {
-                        VarDecl* trueVar = getVarDeclFromExpr(trueExpr);
-                        VarDecl* falseVar = getVarDeclFromExpr(falseExpr);
-                        
-                        if (trueVar || falseVar) { 
-                            if (conditionVar->isStaticLocal())
-                                analysisData.probablyMayersSingletone = true;
-                            else if (conditionVar->isStaticDataMember() && conditionVar->getAccess() == AS_private)
-                                analysisData.probabalyNaiveSingletone = true;
-                        }
-                    }
+                    analyzeIfStatement(ifStmt);
                 }
             }
-            return analysisData.probabalyNaiveSingletone || analysisData.probablyMayersSingletone;
+            
+            return analysisData.probabalyNaiveSingletone || 
+                   analysisData.probablyMayersSingletone;
         }
 
         bool shouldSkipDeclaration(Decl *decl) 
@@ -491,21 +529,19 @@ public:
         if (shouldSkipDeclaration(declaration))
             return true;
 
+        declaration->dump();
         if (declaration->isEmbeddedInDeclarator() && !declaration->isFreeStanding()) {
             return true;
         }
 
-        if ( declaration->isInjectedClassName() ||
-            declaration->isLambda()) {
-            return true;
-        }
 
         /*
         if (declaration->getFriendObjectKind() != Decl::FOK_None) {
             return true;
         }
         */
-        
+       
+
         analysisData.clear();
         registerClassForAnalysisData(declaration);
 
@@ -524,11 +560,14 @@ public:
         analysisData.hasDeletedCopyConstuctor = true;
         analysisData.hasDeletedAssigmentOperator = true;
         for (auto *method : declaration->methods()) {
-            if (method->isStatic() 
-            && compareReturnTypeWithRecordType(method, declaration)) {
+            if (method->isStatic()) { 
                 analysisData.hasMethodLikelyInstance = isProbablyGetInstanceFunction(method); 
-                if (analysisData.hasMethodLikelyInstance && (method->getAccess() != AS_public))
-                    analysisData.hiddenInstanceMethod = true;
+                if (analysisData.hasMethodLikelyInstance) {
+                    analysisData.hiddenInstanceMethod = (method->getAccess() != AS_public); 
+                    analysisData.probabalyCRTPSingletone =  method->getReturnType()->isDependentType();
+                }    
+                analysisData.hasMethodLikelyInstance &= compareReturnTypeWithRecordType(method, declaration)
+                                                     || analysisData.probabalyCRTPSingletone;
             }
                 
             if (CXXConstructorDecl* ctrDecl = dyn_cast<CXXConstructorDecl>(method))

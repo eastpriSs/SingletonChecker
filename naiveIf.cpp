@@ -1,6 +1,5 @@
 class NaiveSingleton {
 private:
-    
     static NaiveSingleton* instance;
     
     NaiveSingleton() {}
@@ -8,9 +7,13 @@ private:
     NaiveSingleton& operator=(const NaiveSingleton&) = delete;
 
 public:
-    static const NaiveSingleton& getInstance() {
-        return (instance != nullptr) ? *instance : *(instance = new NaiveSingleton());
+    static const NaiveSingleton* getInstance() {
+        if  (!instance) 
+            instance = new NaiveSingleton();
+        return  instance;
     }
+    
+    
 };
 
 NaiveSingleton* NaiveSingleton::instance = nullptr;

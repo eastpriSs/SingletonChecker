@@ -18,6 +18,8 @@ namespace AnalysisAlgorithm
                 && (varDecl->getType()->getCanonicalTypeUnqualified() == clssDecl->getTypeForDecl()->getCanonicalTypeUnqualified());
         }
 
+        
+
         void findAssignmentsInStmt(Stmt* stmt, std::vector<BinaryOperator*>& assignments) 
         {
             if (!stmt) return;
@@ -127,13 +129,19 @@ namespace AnalysisAlgorithm
         }
 
         VarDecl* getVarDeclFromExpr(Expr* expr) {
-            expr = expr->IgnoreParenCasts();
-            if (auto *declRef = dyn_cast<DeclRefExpr>(expr)) {
+            if (auto *declRef = dyn_cast<DeclRefExpr>(expr->IgnoreParenCasts())) 
                 return dyn_cast<VarDecl>(declRef->getDecl());
-            }
             return nullptr;
         }
- 
+
+        VarDecl* extractVarFromUnary(Expr* expr) {
+            if (auto* unop = dyn_cast<UnaryOperator>(expr->IgnoreImpCasts())) {
+                if (unop->getOpcode() == UO_AddrOf || unop->getOpcode() == UO_Deref) {
+                    return getVarDeclFromExpr(unop->getSubExpr()->IgnoreParenCasts());
+                }
+            }
+            return getVarDeclFromExpr(expr->IgnoreImpCasts());
+        };
 };
 
 
@@ -381,20 +389,17 @@ private:
         
         VarDecl* analyzeReturnExpression(Expr* retExpr) {
             using AnalysisAlgorithm::getVarDeclFromExpr;
-            
+            using AnalysisAlgorithm::extractVarFromUnary;
+
             if (!retExpr) return nullptr;
             
             retExpr = retExpr->IgnoreParenImpCasts();
-            VarDecl* returnedVar = getVarDeclFromExpr(retExpr);
+           
+            // Handle unary operators (& and *) or just var
+            VarDecl* returnedVar = extractVarFromUnary(retExpr);
             
-            // Handle unary operators (& and *)
-            if (auto* unop = dyn_cast<UnaryOperator>(retExpr)) {
-                if (unop->getOpcode() == UO_AddrOf || unop->getOpcode() == UO_Deref) {
-                    returnedVar = getVarDeclFromExpr(unop->getSubExpr()->IgnoreParenCasts());
-                }
-            }
             // Handle conditional operator (?:)
-            else if (auto* condOp = dyn_cast<ConditionalOperator>(retExpr)) {
+            if (auto* condOp = dyn_cast<ConditionalOperator>(retExpr)) {
                 returnedVar = analyzeConditionalOperator(condOp);
             }
             
@@ -403,7 +408,8 @@ private:
         
         VarDecl* analyzeConditionalOperator(ConditionalOperator* condOp) {
             using AnalysisAlgorithm::getVarDeclFromExpr;
-            
+            using AnalysisAlgorithm::extractVarFromUnary;
+
             auto conditionResult = analysisCondition(condOp->getCond());
             VarDecl* conditionVar = conditionResult.extracted;
             
@@ -411,8 +417,8 @@ private:
                 analysisData.unknownPatternSingletone = true;
                 return nullptr;
             }
-            
-            VarDecl* returnedVar = getVarDeclFromExpr(condOp->getTrueExpr()) ? : getVarDeclFromExpr(condOp->getFalseExpr());
+
+            VarDecl* returnedVar = extractVarFromUnary(condOp->getTrueExpr()) ? : extractVarFromUnary(condOp->getFalseExpr());
             
             if (returnedVar != conditionVar) {
                 if (conditionVar->getType()->isBooleanType()) {
@@ -441,7 +447,7 @@ private:
                 }
                 // Naive pattern
                 else if (returnedVar->isStaticDataMember() && 
-                        returnedVar->getAccess() == AS_private) {
+                        returnedVar->getAccess() != AS_public) {
                     analysisData.probabalyNaiveSingletone = true;
                 }
             }
@@ -485,7 +491,6 @@ private:
             if (!isValidSingletonMethodSignature(method))
                 return false;
 
-            // Analyze all statements in the function body
             for (Stmt* stmt : method->getBody()->children()) {
                 if (!stmt) continue;
                 
